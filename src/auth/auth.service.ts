@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -30,7 +31,8 @@ export class AuthService {
     registerDto.username = 'user.' + usernameSalt;
     const user = new this.userModel(registerDto);
     await user.save();
-    const tokens = await this.createAccessToken(user._id);
+    const tokens = await this.createAccessToken(user._id, user.username);
+    await this.updateRefreshToken(user._id, tokens.refreshToken);
     return {
       user,
       tokens,
@@ -43,15 +45,36 @@ export class AuthService {
       throw new NotFoundException('Wrong email or password.');
     }
     await this.checkPassword(loginDto.password, user);
+    const tokens = await this.createAccessToken(user._id, user.username);
+    await this.updateRefreshToken(user._id, tokens.refreshToken);
     return {
       user,
-      token: await this.createAccessToken(user._id),
+      tokens,
     };
   }
 
-  // async refreshAccessToken(refreshAccessTokenDto: RefreshAccessTokenDto) {
-  //   const userId;
-  // }
+  async logout(userId: string) {
+    await this.updateRefreshToken(userId, null);
+    return {};
+  }
+
+  async refreshAccessToken(userId: string, refreshToken: string) {
+    const user = await this.userModel.findOne({ _id: userId });
+    if (!user || !user.refreshToken) {
+      throw new ForbiddenException('Access Denied');
+    }
+    const isRefreshTokenMatch = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
+    if (!isRefreshTokenMatch) {
+      throw new ForbiddenException('Access Denied');
+    }
+
+    const tokens = await this.createAccessToken(user._id, user.username);
+    await this.updateRefreshToken(user._id, tokens.refreshToken);
+    return { tokens };
+  }
 
   private async findUserByEmail(email: string): Promise<User> {
     const user = await this.userModel.findOne({ email });
@@ -66,11 +89,12 @@ export class AuthService {
     return match;
   }
 
-  private async createAccessToken(userId: string) {
+  private async createAccessToken(userId: string, username: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         {
           sub: userId,
+          username,
         },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
@@ -80,6 +104,7 @@ export class AuthService {
       this.jwtService.signAsync(
         {
           sub: userId,
+          username,
         },
         {
           secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
@@ -91,5 +116,9 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  private async updateRefreshToken(userId: string, refreshToken: string) {
+    await this.userModel.findOneAndUpdate({ _id: userId }, { refreshToken });
   }
 }

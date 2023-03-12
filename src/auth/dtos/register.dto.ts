@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsEmail, MinLength } from 'class-validator';
+import { IsNotEmpty, IsEmail, MinLength } from '@nestjs/class-validator';
 
 export class RegisterDto {
   @IsNotEmpty()

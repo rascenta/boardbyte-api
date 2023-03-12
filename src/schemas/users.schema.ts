@@ -31,6 +31,20 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
+UserSchema.pre('findOneAndUpdate', async function (next) {
+  try {
+    const refreshToken = this.get('refreshToken');
+    if (refreshToken) {
+      const hashed = await bcrypt.hash(refreshToken, 16);
+      this.set({ refreshToken: hashed });
+    }
+
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+});
+
 UserSchema.set('toJSON', {
   transform: function (doc, ret) {
     delete ret['password'];
