@@ -55,7 +55,7 @@ export class AuthService {
 
   async logout(userId: string) {
     await this.updateRefreshToken(userId, null);
-    return {};
+    return { message: 'OK' };
   }
 
   async refreshAccessToken(userId: string, refreshToken: string) {
