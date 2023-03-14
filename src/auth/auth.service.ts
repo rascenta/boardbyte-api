@@ -54,6 +54,11 @@ export class AuthService {
   }
 
   async logout(userId: string) {
+    const user = await this.userModel.findOne({ _id: userId });
+    if (!user || !user.refreshToken) {
+      throw new ForbiddenException('Access Denied');
+    }
+
     await this.updateRefreshToken(userId, null);
     return { message: 'OK' };
   }
