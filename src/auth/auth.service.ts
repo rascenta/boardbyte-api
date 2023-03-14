@@ -34,8 +34,12 @@ export class AuthService {
     const tokens = await this.createAccessToken(user._id, user.username);
     await this.updateRefreshToken(user._id, tokens.refreshToken);
     return {
-      user,
-      tokens,
+      error: false,
+      message: 'Register success',
+      data: {
+        user,
+        tokens,
+      },
     };
   }
 
@@ -48,8 +52,12 @@ export class AuthService {
     const tokens = await this.createAccessToken(user._id, user.username);
     await this.updateRefreshToken(user._id, tokens.refreshToken);
     return {
-      user,
-      tokens,
+      error: false,
+      message: 'Login success',
+      data: {
+        user,
+        tokens,
+      },
     };
   }
 
@@ -60,7 +68,10 @@ export class AuthService {
     }
 
     await this.updateRefreshToken(userId, null);
-    return { message: 'OK' };
+    return {
+      error: false,
+      message: 'Logout success',
+    };
   }
 
   async refreshAccessToken(userId: string, refreshToken: string) {
@@ -78,7 +89,13 @@ export class AuthService {
 
     const tokens = await this.createAccessToken(user._id, user.username);
     await this.updateRefreshToken(user._id, tokens.refreshToken);
-    return { tokens };
+    return {
+      error: false,
+      message: 'Logout success',
+      data: {
+        tokens,
+      },
+    };
   }
 
   private async findUserByEmail(email: string): Promise<User> {
