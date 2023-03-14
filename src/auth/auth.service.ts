@@ -34,12 +34,8 @@ export class AuthService {
     const tokens = await this.createAccessToken(user._id, user.username);
     await this.updateRefreshToken(user._id, tokens.refreshToken);
     return {
-      error: false,
-      message: 'Register success',
-      data: {
-        user,
-        tokens,
-      },
+      user,
+      tokens,
     };
   }
 
@@ -52,12 +48,8 @@ export class AuthService {
     const tokens = await this.createAccessToken(user._id, user.username);
     await this.updateRefreshToken(user._id, tokens.refreshToken);
     return {
-      error: false,
-      message: 'Login success',
-      data: {
-        user,
-        tokens,
-      },
+      user,
+      tokens,
     };
   }
 
@@ -68,10 +60,7 @@ export class AuthService {
     }
 
     await this.updateRefreshToken(userId, null);
-    return {
-      error: false,
-      message: 'Logout success',
-    };
+    return {};
   }
 
   async refreshAccessToken(userId: string, refreshToken: string) {
@@ -90,11 +79,7 @@ export class AuthService {
     const tokens = await this.createAccessToken(user._id, user.username);
     await this.updateRefreshToken(user._id, tokens.refreshToken);
     return {
-      error: false,
-      message: 'Logout success',
-      data: {
-        tokens,
-      },
+      tokens,
     };
   }
 
